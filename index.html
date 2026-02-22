@@ -1,0 +1,2276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Life App V3"/>
+  <title>Life App V3</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    :root {
+      --bg:      #000000;
+      --bg2:     #1c1c1e;
+      --bg3:     #2c2c2e;
+      --bg4:     #3a3a3c;
+      --border:  rgba(255,255,255,0.10);
+      --text:    #ffffff;
+      --text2:   #ebebf5cc;
+      --text3:   #ebebf560;
+      --accent:  #7c6aff;
+      --accent2: #5b4dcc;
+      --green:   #30d158;
+      --orange:  #ff9f0a;
+      --red:     #ff453a;
+      --blue:    #0a84ff;
+      --sidebar: 64px;
+      --radius:  14px;
+      --radius-sm: 10px;
+      --shadow:  0 8px 32px rgba(0,0,0,0.6);
+      --safe-top:    env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    #root {
+      height: 100%;
+      display: flex;
+      flex-direction: row;
+    }
+
+    /* ─── Sidebar ─────────────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar);
+      min-width: var(--sidebar);
+      height: 100%;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: calc(var(--safe-top) + 12px) 0 calc(var(--safe-bottom) + 12px);
+      gap: 2px;
+      z-index: 200;
+      flex-shrink: 0;
+    }
+    .sidebar-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      border: none;
+      background: transparent;
+      color: var(--text3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+      font-size: 20px;
+      gap: 2px;
+      touch-action: manipulation;
+    }
+    .sidebar-icon:active { transform: scale(0.90); }
+    .sidebar-icon.active {
+      background: rgba(124,106,255,0.18);
+      color: var(--accent);
+    }
+    .sidebar-icon .badge {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: var(--red);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 800;
+      border-radius: 99px;
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .sidebar-spacer { flex: 1; }
+
+    /* ─── Main content ────────────────────────────────────── */
+    .main {
+      flex: 1;
+      min-width: 0;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ─── Top bar ─────────────────────────────────────────── */
+    .topbar {
+      padding: calc(var(--safe-top) + 14px) 16px 12px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .topbar-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.4px;
+    }
+    .topbar-sub {
+      font-size: 12px;
+      color: var(--text3);
+      margin-top: 2px;
+    }
+
+    /* ─── Scroll area ─────────────────────────────────────── */
+    .scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* ─── Buttons ─────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      border: none;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      min-height: 44px;
+      touch-action: manipulation;
+      font-family: inherit;
+    }
+    .btn-primary  { background: var(--accent); color: #fff; }
+    .btn-primary:active  { background: var(--accent2); transform: scale(0.97); }
+    .btn-ghost    { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+    .btn-ghost:active    { background: var(--bg3); transform: scale(0.97); }
+    .btn-danger   { background: rgba(255,69,58,0.15); color: var(--red); border: 1px solid rgba(255,69,58,0.2); }
+    .btn-danger:active   { background: rgba(255,69,58,0.25); }
+    .btn-success  { background: rgba(48,209,88,0.15); color: var(--green); border: 1px solid rgba(48,209,88,0.2); }
+    .btn-success:active  { background: rgba(48,209,88,0.25); }
+    .btn-icon {
+      padding: 8px;
+      border-radius: 50%;
+      background: var(--bg3);
+      color: var(--text2);
+      border: 1px solid var(--border);
+      min-height: 44px;
+      min-width: 44px;
+    }
+    .btn-icon:active { background: var(--bg4); transform: scale(0.95); }
+
+    /* ─── Card ────────────────────────────────────────────── */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+    }
+
+    /* ─── Task row (sidebar layout) ──────────────────────── */
+    .task-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 14px;
+      cursor: pointer;
+      transition: background 0.12s;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    .task-row:active { background: var(--bg2); }
+    .task-row-bar {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      border-radius: 0 2px 2px 0;
+    }
+    .task-row-content { flex: 1; min-width: 0; }
+    .task-row-title {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .task-row.completed .task-row-title {
+      text-decoration: line-through;
+      color: var(--text3);
+    }
+    .task-row-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 3px;
+      flex-wrap: wrap;
+    }
+
+    /* ─── Check circle ────────────────────────────────────── */
+    .check-circle {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .check-circle.done { background: var(--green); border-color: var(--green); }
+
+    /* ─── Due badge ───────────────────────────────────────── */
+    .due-badge {
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 99px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .due-badge.overdue { background: rgba(255,69,58,0.18);   color: var(--red);    }
+    .due-badge.today   { background: rgba(255,159,10,0.18);  color: var(--orange); }
+    .due-badge.soon    { background: rgba(124,106,255,0.18); color: var(--accent); }
+    .due-badge.future  { background: var(--bg3); color: var(--text3); }
+
+    /* ─── Energy chip ─────────────────────────────────────── */
+    .energy-chip {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 99px;
+      white-space: nowrap;
+    }
+    .energy-chip.high { background: rgba(255,159,10,0.15); color: var(--orange); }
+    .energy-chip.low  { background: rgba(48,209,88,0.15);  color: var(--green);  }
+
+    /* ─── Section label ───────────────────────────────────── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--text3);
+      padding: 14px 16px 6px;
+    }
+
+    /* ─── Empty state ─────────────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text3);
+    }
+    .empty-icon  { font-size: 48px; margin-bottom: 12px; opacity: 0.55; }
+    .empty-title { font-size: 16px; font-weight: 700; color: var(--text2); margin-bottom: 4px; }
+    .empty-sub   { font-size: 13px; }
+
+    /* ─── Toast ───────────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: calc(var(--safe-bottom) + 24px);
+      left: calc(var(--sidebar) + 16px);
+      right: 16px;
+      text-align: center;
+      background: var(--bg3);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: var(--radius-sm);
+      padding: 9px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.22s ease;
+      z-index: 2000;
+      pointer-events: none;
+      box-shadow: var(--shadow);
+    }
+    .toast.visible { opacity: 1; transform: translateY(0); }
+
+    /* ─── FAB ─────────────────────────────────────────────── */
+    .fab {
+      position: fixed;
+      right: 18px;
+      bottom: calc(var(--safe-bottom) + 18px);
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px rgba(124,106,255,0.5);
+      cursor: pointer;
+      transition: all 0.18s;
+      z-index: 100;
+      touch-action: manipulation;
+    }
+    .fab:active { transform: scale(0.91); }
+
+    /* ─── Bottom sheet base ───────────────────────────────── */
+    .sheet-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 400;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .sheet-overlay.open { opacity: 1; pointer-events: all; }
+    .sheet {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      background: var(--bg2);
+      border-radius: 20px 20px 0 0;
+      border: 1px solid var(--border);
+      border-bottom: none;
+      z-index: 500;
+      transform: translateY(100%);
+      transition: transform 0.32s cubic-bezier(0.32, 1, 0.64, 1);
+      display: flex;
+      flex-direction: column;
+      padding-bottom: var(--safe-bottom);
+    }
+    .sheet.open { transform: translateY(0); }
+    .sheet-handle {
+      width: 36px;
+      height: 5px;
+      background: var(--bg4);
+      border-radius: 99px;
+      margin: 10px auto 0;
+      flex-shrink: 0;
+    }
+    .sheet-header {
+      padding: 14px 18px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .sheet-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .sheet-body {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 16px 18px;
+    }
+
+    /* ─── Add Task form ───────────────────────────────────── */
+    .form-group { margin-bottom: 20px; }
+    .form-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 8px;
+    }
+    .form-input {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 11px 13px;
+      color: var(--text);
+      font-size: 15px;
+      font-family: inherit;
+    }
+    .form-input:focus { outline: none; border-color: var(--accent); }
+
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 7px;
+    }
+    .cat-btn {
+      padding: 10px 4px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border);
+      background: var(--bg3);
+      color: var(--text3);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      min-height: 56px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+
+    .chip-row { display: flex; gap: 7px; flex-wrap: wrap; }
+    .chip {
+      padding: 7px 14px;
+      border-radius: 99px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--text3);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+      min-height: 36px;
+    }
+
+    /* ─── Focus view (full screen overlay) ───────────────── */
+    .focus-view {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 600;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.32, 1, 0.64, 1);
+    }
+    .focus-view.open { transform: translateY(0); }
+    .focus-header {
+      padding: calc(var(--safe-top) + 12px) 16px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .focus-body {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 20px 18px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .focus-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.25;
+      letter-spacing: -0.4px;
+    }
+    .timer-section { text-align: center; padding: 20px 0 8px; }
+    .timer-time {
+      font-size: 64px;
+      font-weight: 200;
+      letter-spacing: -3px;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+    .timer-sublabel {
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 6px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .timer-controls {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      align-items: center;
+      margin-top: 18px;
+    }
+    .btn-timer-play {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.18s;
+      box-shadow: 0 4px 20px rgba(124,106,255,0.4);
+      touch-action: manipulation;
+    }
+    .btn-timer-play:active { transform: scale(0.91); }
+    .btn-timer-play.running { background: var(--orange); box-shadow: 0 4px 20px rgba(255,159,10,0.4); }
+    .timer-type-row {
+      display: flex;
+      gap: 7px;
+      justify-content: center;
+      margin-bottom: 4px;
+    }
+    .timer-type-btn {
+      padding: 5px 12px;
+      border-radius: 99px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--text3);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      min-height: 32px;
+      font-family: inherit;
+    }
+    .timer-type-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .pom-dots { display: flex; gap: 7px; justify-content: center; margin-top: 8px; }
+    .pom-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--bg3);
+      border: 1.5px solid var(--border);
+      transition: all 0.2s;
+    }
+    .pom-dot.done { background: var(--accent); border-color: var(--accent); }
+
+    /* Subtasks */
+    .subtask-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .subtask-text { font-size: 14px; color: var(--text); flex: 1; }
+    .subtask-text.done { text-decoration: line-through; color: var(--text3); }
+
+    /* Notes textarea */
+    .notes-area {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 11px 13px;
+      color: var(--text);
+      font-size: 14px;
+      resize: none;
+      min-height: 80px;
+      font-family: inherit;
+      line-height: 1.5;
+    }
+    .notes-area:focus { outline: none; border-color: var(--accent); }
+
+    /* ─── JARVIS sheet ────────────────────────────────────── */
+    .jarvis-sheet {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      height: 72vh;
+      background: var(--bg2);
+      border-radius: 20px 20px 0 0;
+      border: 1px solid var(--border);
+      border-bottom: none;
+      z-index: 700;
+      transform: translateY(100%);
+      transition: transform 0.32s cubic-bezier(0.32, 1, 0.64, 1);
+      display: flex;
+      flex-direction: column;
+      padding-bottom: var(--safe-bottom);
+    }
+    .jarvis-sheet.open { transform: translateY(0); }
+    .jarvis-messages {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 12px 16px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .msg {
+      max-width: 88%;
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .msg.user {
+      align-self: flex-end;
+      background: var(--accent);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+    .msg.jarvis {
+      align-self: flex-start;
+      background: var(--bg3);
+      color: var(--text);
+      border-bottom-left-radius: 4px;
+    }
+    .msg.typing {
+      align-self: flex-start;
+      background: var(--bg3);
+      padding: 14px;
+    }
+    .typing-dots { display: flex; gap: 5px; align-items: center; }
+    .typing-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--text3);
+      animation: typingBounce 1.2s ease-in-out infinite;
+    }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typingBounce {
+      0%, 80%, 100% { transform: scale(0.7); opacity: 0.5; }
+      40%           { transform: scale(1);   opacity: 1;   }
+    }
+
+    /* Capture card inside JARVIS */
+    .capture-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      margin-top: 6px;
+    }
+    .capture-card-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+    .capture-card-meta  { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+    .capture-card-actions { display: flex; gap: 8px; }
+
+    .jarvis-input-row {
+      padding: 10px 14px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      flex-shrink: 0;
+    }
+    .jarvis-input {
+      flex: 1;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 10px 16px;
+      color: var(--text);
+      font-size: 15px;
+      font-family: inherit;
+      resize: none;
+      max-height: 100px;
+      line-height: 1.4;
+    }
+    .jarvis-input:focus { outline: none; border-color: var(--accent); }
+    .jarvis-send {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.15s;
+      touch-action: manipulation;
+    }
+    .jarvis-send:active { transform: scale(0.9); }
+
+    /* ─── Settings ────────────────────────────────────────── */
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 0;
+      border-bottom: 1px solid var(--border);
+      gap: 10px;
+    }
+    .settings-row-label { font-size: 14px; font-weight: 600; color: var(--text); }
+    .settings-row-sub   { font-size: 12px; color: var(--text3); margin-top: 2px; }
+    .stat-num { font-size: 24px; font-weight: 700; line-height: 1; }
+
+    /* ─── Misc ────────────────────────────────────────────── */
+    input[type="date"] { color-scheme: dark; }
+    textarea { resize: vertical; }
+    .cat-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback } = React;
+
+    // ─── Constants ────────────────────────────────────────────────────
+    const STORAGE_KEY = 'life_app_v3_data';
+
+
+    const DEFAULT_CATEGORIES = [
+      color: var(--text3);
+    }
+    .task-card-meta {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+    .task-card-stripe {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 4px;
+      border-radius: 99px 0 0 99px;
+    }
+
+    /* ─── Check circle ────────────────────────────────── */
+    .check-circle {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .check-circle.done { background: var(--success); border-color: var(--success); }
+
+    /* ─── ZEN MODE ────────────────────────────────────── */
+    .zen-scroll {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .zen-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 28px 20px 100px;
+      gap: 14px;
+      min-height: 100%;
+    }
+    .zen-header {
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .zen-label {
+      font-size: 11px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--text3);
+      font-weight: 700;
+    }
+    .zen-sublabel {
+      font-size: 13px;
+      color: var(--text3);
+      margin-top: 4px;
+    }
+    .zen-task-card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--bg2);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 18px 18px 14px;
+      cursor: pointer;
+      transition: all 0.35s cubic-bezier(0.34, 1.4, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .zen-task-card:active { transform: scale(0.97); }
+    .zen-task-card.faded {
+      opacity: 0;
+      transform: scale(0.82) translateY(-24px);
+      pointer-events: none;
+    }
+    .zen-task-card.selected {
+      box-shadow: 0 0 0 2px var(--accent), var(--shadow);
+    }
+    .zen-task-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 8px 0 6px;
+      line-height: 1.3;
+    }
+    .zen-score-bar {
+      height: 3px;
+      background: var(--bg3);
+      border-radius: 99px;
+      margin-top: 12px;
+      overflow: hidden;
+    }
+    .zen-score-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.6s ease;
+    }
+    .zen-task-stripe {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 4px;
+      border-radius: 99px 0 0 99px;
+    }
+
+    /* ─── WORK VIEW ───────────────────────────────────── */
+    .work-view {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 0 0 calc(var(--safe-bottom) + 16px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .work-header {
+      padding: calc(var(--safe-top) + 12px) 16px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .work-body {
+      flex: 1;
+      padding: 20px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .work-task-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.2;
+      letter-spacing: -0.5px;
+    }
+
+    /* Timer */
+    .timer-section {
+      text-align: center;
+      padding: 24px 0 8px;
+    }
+    .timer-time {
+      font-size: 68px;
+      font-weight: 200;
+      letter-spacing: -3px;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+    .timer-sublabel {
+      font-size: 12px;
+      color: var(--text3);
+      margin-top: 8px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .timer-controls {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+    }
+    .btn-timer-play {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.18s;
+      box-shadow: 0 4px 24px rgba(124,106,255,0.45);
+      touch-action: manipulation;
+    }
+    .btn-timer-play:active { transform: scale(0.92); }
+    .btn-timer-play.running { background: var(--warning); box-shadow: 0 4px 24px rgba(245,158,11,0.4); }
+
+    .timer-type-row {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 4px;
+    }
+    .timer-type-btn {
+      padding: 6px 14px;
+      border-radius: 99px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--text3);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s;
+      min-height: 36px;
+      font-family: inherit;
+    }
+    .timer-type-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* Pomodoro dots */
+    .pom-dots {
+      display: flex;
+      gap: 7px;
+      justify-content: center;
+      margin-top: 10px;
+    }
+    .pom-dot {
+      width: 11px; height: 11px;
+      border-radius: 50%;
+      background: var(--bg3);
+      border: 1.5px solid var(--border);
+      transition: all 0.2s;
+    }
+    .pom-dot.done { background: var(--accent); border-color: var(--accent); }
+
+    /* ─── NOTES ───────────────────────────────────────── */
+    .notes-area {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      color: var(--text);
+      font-size: 14px;
+      resize: none;
+      min-height: 80px;
+      font-family: inherit;
+      line-height: 1.5;
+    }
+    .notes-area:focus { outline: none; border-color: var(--accent); }
+
+    /* ─── DASHBOARD ───────────────────────────────────── */
+    .dashboard-container {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 14px 16px;
+    }
+    .cat-filter-row {
+      display: flex;
+      gap: 7px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 4px;
+      margin-bottom: 14px;
+      scrollbar-width: none;
+    }
+    .cat-filter-row::-webkit-scrollbar { display: none; }
+    .cat-filter-btn {
+      flex-shrink: 0;
+      padding: 6px 14px;
+      border-radius: 99px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--text2);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s;
+      white-space: nowrap;
+      min-height: 36px;
+      font-family: inherit;
+    }
+    .section-label {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 8px;
+      margin-top: 16px;
+    }
+    .task-list { display: flex; flex-direction: column; gap: 8px; }
+
+    /* ─── ADD / EDIT TASK ─────────────────────────────── */
+    .form-container {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 20px 16px;
+    }
+    .form-group { margin-bottom: 22px; }
+    .form-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 8px;
+    }
+    .form-input {
+      width: 100%;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      color: var(--text);
+      font-size: 15px;
+      font-family: inherit;
+    }
+    .form-input:focus { outline: none; border-color: var(--accent); }
+    .cat-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .cat-btn {
+      padding: 10px 6px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border);
+      background: var(--bg2);
+      color: var(--text3);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s;
+      text-align: center;
+      min-height: 56px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      font-family: inherit;
+    }
+    .priority-selector { display: flex; gap: 7px; }
+    .priority-btn {
+      flex: 1;
+      padding: 10px 4px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--text3);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s;
+      text-align: center;
+      min-height: 44px;
+      font-family: inherit;
+    }
+
+    /* ─── SETTINGS ────────────────────────────────────── */
+    .settings-container {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 16px 16px;
+    }
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+    }
+    .settings-row-label { font-size: 14px; font-weight: 600; color: var(--text); }
+    .settings-row-sub   { font-size: 12px; color: var(--text3); margin-top: 2px; }
+    .stat-num { font-size: 26px; font-weight: 800; line-height: 1; }
+
+    /* ─── FAB ─────────────────────────────────────────── */
+    .fab {
+      position: fixed;
+      right: 20px;
+      bottom: calc(var(--safe-bottom) + 68px);
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 24px rgba(124,106,255,0.55);
+      cursor: pointer;
+      transition: all 0.18s;
+      z-index: 50;
+      touch-action: manipulation;
+    }
+    .fab:active { transform: scale(0.91); }
+
+    /* ─── TOAST ───────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: calc(var(--safe-bottom) + 76px);
+      left: 50%;
+      transform: translateX(-50%) translateY(14px);
+      background: var(--bg3);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: var(--radius-sm);
+      padding: 9px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+      opacity: 0;
+      transition: all 0.25s ease;
+      z-index: 1000;
+      pointer-events: none;
+      box-shadow: var(--shadow);
+    }
+    .toast.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ─── Empty state ─────────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text3);
+    }
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback } = React;
+
+    // ─── Constants ────────────────────────────────────────────────────
+    const STORAGE_KEY = 'life_app_v3_data';
+
+    const DEFAULT_CATEGORIES = [
+      { id: 'work',     name: 'Work',     color: '#3b82f6', icon: '💼' },
+      { id: 'health',   name: 'Health',   color: '#22c55e', icon: '💪' },
+      { id: 'home',     name: 'Home',     color: '#f97316', icon: '🏠' },
+      { id: 'finance',  name: 'Finance',  color: '#eab308', icon: '💰' },
+      { id: 'personal', name: 'Personal', color: '#a855f7', icon: '🧠' },
+      { id: 'projects', name: 'Projects', color: '#ef4444', icon: '🚀' },
+    ];
+
+    const PRIORITY_LABELS = ['', 'Low', 'Low+', 'Medium', 'High', 'Critical'];
+    const PRIORITY_COLORS = ['', '#60a5fa', '#34d399', '#f59e0b', '#f97316', '#ef4444'];
+
+    const DEFAULT_DATA = {
+      tasks: [],
+      categories: DEFAULT_CATEGORIES,
+      settings: { zenOfferCount: 3, pomodoroWork: 25, pomodoroBreak: 5 },
+    };
+
+    // ─── Utilities ───────────────────────────────────────────────
+    const uuid = () =>
+      `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
+    const formatSeconds = (totalSecs) => {
+      const s = Math.max(0, Math.floor(totalSecs));
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const sec = s % 60;
+      if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+      return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+    };
+
+    const getDueBadge = (dueDate) => {
+      if (!dueDate) return null;
+      const days = (new Date(dueDate) - new Date()) / (1000 * 60 * 60 * 24);
+      if (days < 0)   return { label: 'Overdue', cls: 'overdue' };
+      if (days < 1)   return { label: 'Today',   cls: 'today'   };
+      if (days < 4)   return { label: `${Math.ceil(days)}d`,  cls: 'soon'   };
+      return            { label: `${Math.ceil(days)}d`,  cls: 'future'  };
+    };
+
+    const scoreTask = (task) => {
+      if (task.status !== 'active') return -1;
+      let score = 0;
+      // Priority weight
+      score += (task.priority || 3) * 25;
+      // Due date urgency
+      if (task.dueDate) {
+        const days = (new Date(task.dueDate) - new Date()) / (1000 * 60 * 60 * 24);
+        if (days < 0)  score += 100;
+        else if (days < 1) score += 80;
+        else if (days < 3) score += 50;
+        else if (days < 7) score += 25;
+      }
+      // Neglect (passed more = higher score)
+      score += Math.min((task.skippedCount || 0) * 8, 40);
+      // Age nudge
+      const ageDays = (new Date() - new Date(task.createdAt)) / (1000 * 60 * 60 * 24);
+      score += Math.min(ageDays * 1.5, 20);
+      return score;
+    };
+
+    // ─── Storage helpers ─────────────────────────────────────────
+    const loadData = () => {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { ...DEFAULT_DATA, categories: DEFAULT_CATEGORIES };
+        const saved = JSON.parse(raw);
+        return {
+          tasks:      saved.tasks      || [],
+          categories: saved.categories || DEFAULT_CATEGORIES,
+          settings:   { ...DEFAULT_DATA.settings, ...(saved.settings || {}) },
+        };
+      } catch (e) {
+        console.error('❌ Failed to load data', e);
+        return { ...DEFAULT_DATA };
+      }
+    };
+
+    const immediatelySave = (data) => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        console.log('💾 Saved to localStorage');
+        return true;
+      } catch (e) {
+        if (e.name === 'QuotaExceededError' || e.code === 22) {
+          console.error('⚠️ Storage full!');
+        }
+        return false;
+      }
+    };
+
+    // ─── Toast ───────────────────────────────────────────────────
+    function Toast({ message }) {
+      const [visible, setVisible] = useState(false);
+      const [text, setText] = useState('');
+      const timerRef = useRef(null);
+
+      useEffect(() => {
+        if (!message) return;
+        setText(message.text);
+        setVisible(true);
+        clearTimeout(timerRef.current);
+        timerRef.current = setTimeout(() => setVisible(false), 2000);
+      }, [message]);
+
+      return <div className={`toast ${visible ? 'visible' : ''}`}>{text}</div>;
+    }
+
+    // ─── PriorityDots ────────────────────────────────────────────
+    function PriorityDots({ priority }) {
+      return (
+        <div className="priority-dots">
+          {[1,2,3,4,5].map(i => (
+            <div
+              key={i}
+              className={`priority-dot ${i <= priority ? 'filled' : ''} ${priority === 5 && i <= 5 ? 'crit' : ''}`}
+            />
+          ))}
+        </div>
+      );
+    }
+
+    // ─── CatPill ─────────────────────────────────────────────────
+    function CatPill({ cat, small }) {
+      if (!cat) return null;
+      return (
+        <span
+          className="cat-pill"
+          style={{
+            background:   cat.color + '22',
+            color:        cat.color,
+            borderColor:  cat.color + '44',
+            fontSize:     small ? '10px' : '11px',
+          }}
+        >
+          {cat.icon} {cat.name}
+        </span>
+      );
+    }
+
+    // ─── CheckCircle ─────────────────────────────────────────────
+    function CheckCircle({ done, onToggle }) {
+      return (
+        <div
+          className={`check-circle ${done ? 'done' : ''}`}
+          onClick={e => { e.stopPropagation(); onToggle(); }}
+        >
+          {done && (
+            <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+              <path d="M1 3.5L3.8 6.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          )}
+        </div>
+      );
+    }
+
+    // ─── TaskCard ────────────────────────────────────────────────
+    function TaskCard({ task, categories, onTap, onToggle }) {
+      const cat = categories.find(c => c.id === task.categoryId);
+      const due = getDueBadge(task.dueDate);
+      const timeStr = task.timeSpent > 0 ? formatSeconds(task.timeSpent) : null;
+
+      return (
+        <div
+          className={`task-card ${task.status === 'completed' ? 'completed' : ''}`}
+          onClick={() => onTap(task)}
+        >
+          <div className="task-card-stripe" style={{ background: cat?.color || 'var(--accent)' }} />
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+            <CheckCircle done={task.status === 'completed'} onToggle={() => onToggle(task.id)} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="task-card-title">{task.title}</div>
+              <div className="task-card-meta">
+                {cat  && <CatPill cat={cat} small />}
+                <PriorityDots priority={task.priority} />
+                {due  && <span className={`due-badge ${due.cls}`}>{due.label}</span>}
+                {timeStr && <span style={{ fontSize: '11px', color: 'var(--text3)' }}>⏱ {timeStr}</span>}
+                {task.timerRunning && <span style={{ fontSize: '11px', color: 'var(--warning)', fontWeight: 700 }}>● Running</span>}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── useTaskTimer hook ────────────────────────────────────────
+    // Safe to call at top level — not inside map
+    function useTaskTimer(task) {
+      const [elapsed, setElapsed] = useState(() =>
+        task.timerRunning && task.timerStartedAt
+          ? (task.timeSpent || 0) + Math.floor((Date.now() - task.timerStartedAt) / 1000)
+          : (task.timeSpent || 0)
+      );
+      const intervalRef = useRef(null);
+
+      useEffect(() => {
+        clearInterval(intervalRef.current);
+        if (task.timerRunning && task.timerStartedAt) {
+          const tick = () =>
+            setElapsed(Math.floor((task.timeSpent || 0) + (Date.now() - task.timerStartedAt) / 1000));
+          tick();
+          intervalRef.current = setInterval(tick, 1000);
+        } else {
+          setElapsed(task.timeSpent || 0);
+        }
+        return () => clearInterval(intervalRef.current);
+      }, [task.timerRunning, task.timerStartedAt, task.timeSpent]);
+
+      return elapsed;
+    }
+
+    // ─── WorkView ────────────────────────────────────────────────
+    function WorkView({ task, appData, setAppData, onBack, showToast }) {
+      const { categories } = appData;
+      const cat = categories.find(c => c.id === task.categoryId);
+      const [timerType, setTimerType] = useState(task.timerType || 'stopwatch');
+      const [notes, setNotes]         = useState(task.notes || '');
+      const notesTimer  = useRef(null);
+      const elapsed     = useTaskTimer(task);
+
+      // Compute display time
+      const getDisplayTime = () => {
+        if (timerType === 'countdown') {
+          const from  = (appData.settings?.pomodoroWork || 25) * 60;
+          const spent = task.timerRunning && task.timerStartedAt
+            ? (Date.now() - task.timerStartedAt) / 1000
+            : 0;
+          return formatSeconds(Math.max(0, from - (task.timeSpent || 0) - spent));
+        }
+        if (timerType === 'pomodoro') {
+          const phaseMins = task.pomodoroPhase === 'break'
+            ? (appData.settings?.pomodoroBreak || 5)
+            : (appData.settings?.pomodoroWork  || 25);
+          const from  = phaseMins * 60;
+          const spent = task.timerRunning && task.timerStartedAt
+            ? (Date.now() - task.timerStartedAt) / 1000
+            : 0;
+          return formatSeconds(Math.max(0, from - spent));
+        }
+        return formatSeconds(elapsed);
+      };
+
+      const updateTask = (changes) => {
+        const updatedTask  = { ...task, ...changes, updatedAt: new Date().toISOString() };
+        const updatedTasks = appData.tasks.map(t => t.id === task.id ? updatedTask : t);
+        const updated      = { ...appData, tasks: updatedTasks };
+        immediatelySave(updated);
+        setAppData(updated);
+        return updatedTask;
+      };
+
+      const toggleTimer = () => {
+        if (task.timerRunning) {
+          const addedSecs = Math.floor((Date.now() - task.timerStartedAt) / 1000);
+          updateTask({
+            timerRunning:   false,
+            timerStartedAt: null,
+            timeSpent:      (task.timeSpent || 0) + addedSecs,
+            timerType,
+          });
+          showToast('Timer paused');
+        } else {
+          updateTask({ timerRunning: true, timerStartedAt: Date.now(), timerType });
+          showToast('Timer started');
+        }
+      };
+
+      const resetTimer = () => {
+        updateTask({
+          timerRunning:   false,
+          timerStartedAt: null,
+          timeSpent:      0,
+          pomodoroCount:  0,
+          pomodoroPhase:  'work',
+        });
+        showToast('Timer reset');
+      };
+
+      const markDone = () => {
+        const extra = task.timerRunning
+          ? { timerRunning: false, timerStartedAt: null, timeSpent: (task.timeSpent||0) + Math.floor((Date.now()-task.timerStartedAt)/1000) }
+          : {};
+        updateTask({ ...extra, status: 'completed', completedAt: new Date().toISOString() });
+        showToast('✅ Task complete!');
+        onBack();
+      };
+
+      const passTask = () => {
+        const extra = task.timerRunning
+          ? { timerRunning: false, timerStartedAt: null, timeSpent: (task.timeSpent||0) + Math.floor((Date.now()-task.timerStartedAt)/1000) }
+          : {};
+        updateTask({ ...extra, skippedCount: (task.skippedCount || 0) + 1 });
+        showToast('Passed — see you later');
+        onBack();
+      };
+
+      const handleNotes = (val) => {
+        setNotes(val);
+        clearTimeout(notesTimer.current);
+        notesTimer.current = setTimeout(() => updateTask({ notes: val }), 800);
+      };
+
+      const due = getDueBadge(task.dueDate);
+
+      return (
+        <div className="work-view">
+          {/* Work header */}
+          <div className="work-header">
+            <button className="btn btn-ghost" style={{ padding: '8px 14px', fontSize: '13px' }} onClick={onBack}>
+              ← Back
+            </button>
+            {cat && <CatPill cat={cat} />}
+            {due && <span className={`due-badge ${due.cls}`}>{due.label}</span>}
+          </div>
+
+          <div className="work-body">
+            {/* Title + priority */}
+            <div>
+              <div className="work-task-title">{task.title}</div>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '8px' }}>
+                <PriorityDots priority={task.priority} />
+                <span style={{ fontSize: '12px', color: 'var(--text3)', fontWeight: 600 }}>
+                  {PRIORITY_LABELS[task.priority]} priority
+                </span>
+              </div>
+            </div>
+
+            {/* Timer type selector */}
+            <div className="timer-type-row">
+              {['stopwatch', 'countdown', 'pomodoro'].map(t => (
+                <button
+                  key={t}
+                  className={`timer-type-btn ${timerType === t ? 'active' : ''}`}
+                  onClick={() => { setTimerType(t); updateTask({ timerType: t }); }}
+                >
+                  {t === 'stopwatch' ? '⏱ Stopwatch' : t === 'countdown' ? '⏳ Countdown' : '🍅 Pomodoro'}
+                </button>
+              ))}
+            </div>
+
+            {/* Timer display */}
+            <div className="timer-section">
+              <div className="timer-time">{getDisplayTime()}</div>
+              {timerType === 'pomodoro' && (
+                <>
+                  <div className="timer-sublabel">
+                    {task.pomodoroPhase === 'break' ? '☕ Break' : '🎯 Focus'}
+                  </div>
+                  <div className="pom-dots">
+                    {[0,1,2,3].map(i => (
+                      <div key={i} className={`pom-dot ${i < (task.pomodoroCount||0) ? 'done' : ''}`} />
+                    ))}
+                  </div>
+                </>
+              )}
+              {timerType === 'stopwatch' && elapsed > 0 && (
+                <div className="timer-sublabel">total tracked</div>
+              )}
+
+              {/* Controls */}
+              <div className="timer-controls">
+                <button className="btn btn-icon" onClick={resetTimer} title="Reset">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="1 4 1 10 7 10"/>
+                    <path d="M3.51 15a9 9 0 1 0 .49-3.55"/>
+                  </svg>
+                </button>
+
+                <button
+                  className={`btn-timer-play ${task.timerRunning ? 'running' : ''}`}
+                  onClick={toggleTimer}
+                >
+                  {task.timerRunning
+                    ? <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+                    : <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+                  }
+                </button>
+
+                {/* Placeholder for symmetry */}
+                <div style={{ width: '44px' }} />
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div>
+              <div className="form-label">Notes</div>
+              <textarea
+                className="notes-area"
+                placeholder="Add notes..."
+                value={notes}
+                onChange={e => handleNotes(e.target.value)}
+                rows={3}
+              />
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <button className="btn btn-success" style={{ flex: 1, minWidth: '120px' }} onClick={markDone}>
+                ✅ Mark Done
+              </button>
+              <button className="btn btn-ghost" onClick={passTask}>
+                ⏭ Pass
+              </button>
+            </div>
+
+            <div style={{ height: '20px' }} />
+          </div>
+        </div>
+      );
+    }
+
+    // ─── ZenMode ─────────────────────────────────────────────────
+    function ZenMode({ appData, setAppData, onWorkTask, showToast }) {
+      const { tasks, categories, settings } = appData;
+      const [selectedId, setSelectedId] = useState(null);
+      const [fadedIds,   setFadedIds]   = useState([]);
+      const offerCount = settings.zenOfferCount || 3;
+
+      const scored = tasks
+        .filter(t => t.status === 'active')
+        .map(t => ({ ...t, _score: scoreTask(t) }))
+        .sort((a, b) => b._score - a._score)
+        .slice(0, offerCount);
+
+      const maxScore = scored[0]?._score || 1;
+
+      const handleSelect = (task) => {
+        if (selectedId) return;
+        setSelectedId(task.id);
+        setFadedIds(scored.filter(t => t.id !== task.id).map(t => t.id));
+        setTimeout(() => onWorkTask(task), 380);
+      };
+
+      const handlePass = (taskId, e) => {
+        e.stopPropagation();
+        const updated = {
+          ...appData,
+          tasks: appData.tasks.map(t =>
+            t.id === taskId
+              ? { ...t, skippedCount: (t.skippedCount||0)+1, updatedAt: new Date().toISOString() }
+              : t
+          ),
+        };
+        immediatelySave(updated);
+        setAppData(updated);
+        showToast('Skipped');
+      };
+
+      if (scored.length === 0) {
+        return (
+          <div className="zen-scroll">
+            <div className="zen-container" style={{ justifyContent: 'center' }}>
+              <div className="empty-state">
+                <div className="empty-icon">🎉</div>
+                <div className="empty-title">All clear!</div>
+                <div className="empty-sub">No active tasks. Tap + to add one.</div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="zen-scroll">
+          <div className="zen-container">
+            <div className="zen-header">
+              <div className="zen-label">Focus on one</div>
+              <div className="zen-sublabel">Tap to start · Pass to skip</div>
+            </div>
+
+            {scored.map(task => {
+              const cat    = categories.find(c => c.id === task.categoryId);
+              const due    = getDueBadge(task.dueDate);
+              const isFaded   = fadedIds.includes(task.id);
+              const isSelected = selectedId === task.id;
+
+              return (
+                <div
+                  key={task.id}
+                  className={`zen-task-card ${isFaded ? 'faded' : ''} ${isSelected ? 'selected' : ''}`}
+                  style={{ borderColor: isSelected && cat ? cat.color : undefined }}
+                  onClick={() => handleSelect(task)}
+                >
+                  <div className="zen-task-stripe" style={{ background: cat?.color || 'var(--accent)' }} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      {cat && <CatPill cat={cat} small />}
+                      <div className="zen-task-title">{task.title}</div>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <PriorityDots priority={task.priority} />
+                        {due && <span className={`due-badge ${due.cls}`}>{due.label}</span>}
+                        {task.skippedCount > 0 && (
+                          <span style={{ fontSize: '11px', color: 'var(--text3)' }}>
+                            passed {task.skippedCount}×
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      className="btn btn-ghost"
+                      style={{ padding: '6px 12px', fontSize: '12px', flexShrink: 0 }}
+                      onClick={e => handlePass(task.id, e)}
+                    >
+                      Pass
+                    </button>
+                  </div>
+
+                  {/* Priority/score bar */}
+                  <div className="zen-score-bar">
+                    <div
+                      className="zen-score-fill"
+                      style={{
+                        width:      `${Math.round((task._score / maxScore) * 100)}%`,
+                        background: cat
+                          ? `linear-gradient(90deg, ${cat.color}, ${cat.color}66)`
+                          : 'var(--accent)',
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
+    // ─── Dashboard ───────────────────────────────────────────────
+    function Dashboard({ appData, setAppData, onWorkTask, showToast }) {
+      const { tasks, categories } = appData;
+      const [activeCat,      setActiveCat]      = useState('all');
+      const [showCompleted,  setShowCompleted]  = useState(false);
+
+      const filtered = tasks.filter(t => {
+        if (activeCat !== 'all' && t.categoryId !== activeCat) return false;
+        if (!showCompleted && t.status === 'completed') return false;
+        return true;
+      });
+
+      const active    = filtered.filter(t => t.status === 'active').sort((a,b) => scoreTask(b) - scoreTask(a));
+      const completed = filtered.filter(t => t.status === 'completed');
+
+      const toggleComplete = (taskId) => {
+        const t = appData.tasks.find(x => x.id === taskId);
+        if (!t) return;
+        const newStatus = t.status === 'completed' ? 'active' : 'completed';
+        const timerStop = t.timerRunning && newStatus === 'completed'
+          ? { timerRunning: false, timerStartedAt: null, timeSpent: (t.timeSpent||0) + Math.floor((Date.now()-t.timerStartedAt)/1000) }
+          : {};
+        const updatedTask = { ...t, ...timerStop, status: newStatus, completedAt: newStatus === 'completed' ? new Date().toISOString() : null, updatedAt: new Date().toISOString() };
+        const updated = { ...appData, tasks: appData.tasks.map(x => x.id === taskId ? updatedTask : x) };
+        immediatelySave(updated);
+        setAppData(updated);
+        showToast(newStatus === 'completed' ? '✅ Done!' : 'Reopened');
+      };
+
+      return (
+        <div className="dashboard-container">
+          {/* Category filter pills */}
+          <div className="cat-filter-row">
+            <button
+              className="cat-filter-btn"
+              style={activeCat === 'all' ? { background: 'var(--accent)', borderColor: 'var(--accent)', color: '#fff' } : {}}
+              onClick={() => setActiveCat('all')}
+            >
+              All
+            </button>
+            {categories.map(cat => (
+              <button
+                key={cat.id}
+                className="cat-filter-btn"
+                style={activeCat === cat.id ? { background: cat.color, borderColor: cat.color, color: '#fff' } : {}}
+                onClick={() => setActiveCat(cat.id)}
+              >
+                {cat.icon} {cat.name}
+              </button>
+            ))}
+          </div>
+
+          {/* Active tasks */}
+          {active.length > 0 && (
+            <>
+              <div className="section-label">Active · {active.length}</div>
+              <div className="task-list">
+                {active.map(task => (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    categories={categories}
+                    onTap={onWorkTask}
+                    onToggle={toggleComplete}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+
+          {active.length === 0 && (
+            <div className="empty-state">
+              <div className="empty-icon">📋</div>
+              <div className="empty-title">No active tasks</div>
+              <div className="empty-sub">Tap + to add something</div>
+            </div>
+          )}
+
+          {/* Completed */}
+          {completed.length > 0 && (
+            <>
+              <div
+                className="section-label"
+                style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', userSelect: 'none' }}
+                onClick={() => setShowCompleted(s => !s)}
+              >
+                Completed · {completed.length} {showCompleted ? '▲' : '▼'}
+              </div>
+              {showCompleted && (
+                <div className="task-list">
+                  {completed.map(task => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      categories={categories}
+                      onTap={onWorkTask}
+                      onToggle={toggleComplete}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          <div style={{ height: '80px' }} />
+        </div>
+      );
+    }
+
+    // ─── AddTask ─────────────────────────────────────────────────
+    function AddTask({ appData, setAppData, editTask, onSave, onCancel, showToast }) {
+      const { categories } = appData;
+      const [title,      setTitle]      = useState(editTask?.title      || '');
+      const [categoryId, setCategoryId] = useState(editTask?.categoryId || 'work');
+      const [priority,   setPriority]   = useState(editTask?.priority   || 3);
+      const [dueDate,    setDueDate]     = useState(editTask?.dueDate ? editTask.dueDate.split('T')[0] : '');
+      const [notes,      setNotes]       = useState(editTask?.notes      || '');
+
+      const handleSave = () => {
+        if (!title.trim()) { showToast('⚠️ Add a title'); return; }
+        const now = new Date().toISOString();
+
+        if (editTask) {
+          const updatedTask = {
+            ...editTask,
+            title:      title.trim(),
+            categoryId,
+            priority,
+            dueDate:    dueDate ? new Date(dueDate).toISOString() : null,
+            notes,
+            updatedAt:  now,
+          };
+          const updated = { ...appData, tasks: appData.tasks.map(t => t.id === editTask.id ? updatedTask : t) };
+          immediatelySave(updated);
+          setAppData(updated);
+          showToast('💾 Saved');
+        } else {
+          const newTask = {
+            id:                uuid(),
+            title:             title.trim(),
+            categoryId,
+            priority,
+            dueDate:           dueDate ? new Date(dueDate).toISOString() : null,
+            notes,
+            status:            'active',
+            createdAt:         now,
+            updatedAt:         now,
+            completedAt:       null,
+            skippedCount:      0,
+            timeSpent:         0,
+            timerType:         'stopwatch',
+            timerRunning:      false,
+            timerStartedAt:    null,
+            timerCountdownFrom: 25 * 60,
+            pomodoroCount:     0,
+            pomodoroPhase:     'work',
+            lastSynced:        null,
+            fieldModifications: {},
+          };
+          const updated = { ...appData, tasks: [...appData.tasks, newTask] };
+          immediatelySave(updated);
+          setAppData(updated);
+          showToast('✅ Task added');
+        }
+        onSave();
+      };
+
+      return (
+        <div className="form-container">
+          <div className="form-group">
+            <label className="form-label">Task</label>
+            <input
+              className="form-input"
+              placeholder="What needs to be done?"
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              autoFocus
+              style={{ fontSize: '17px', fontWeight: '600' }}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Category</label>
+            <div className="cat-selector">
+              {categories.map(cat => (
+                <button
+                  key={cat.id}
+                  className="cat-btn"
+                  style={categoryId === cat.id
+                    ? { background: cat.color+'28', borderColor: cat.color, color: cat.color }
+                    : {}
+                  }
+                  onClick={() => setCategoryId(cat.id)}
+                >
+                  <span style={{ fontSize: '22px' }}>{cat.icon}</span>
+                  <span>{cat.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Priority</label>
+            <div className="priority-selector">
+              {[1,2,3,4,5].map(p => (
+                <button
+                  key={p}
+                  className="priority-btn"
+                  style={priority === p
+                    ? { background: PRIORITY_COLORS[p]+'28', borderColor: PRIORITY_COLORS[p], color: PRIORITY_COLORS[p] }
+                    : {}
+                  }
+                  onClick={() => setPriority(p)}
+                >
+                  {PRIORITY_LABELS[p]}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Due Date (optional)</label>
+            <input
+              className="form-input"
+              type="date"
+              value={dueDate}
+              onChange={e => setDueDate(e.target.value)}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Notes (optional)</label>
+            <textarea
+              className="notes-area"
+              placeholder="Any extra details..."
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              rows={3}
+            />
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px', paddingBottom: '48px' }}>
+            <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleSave}>
+              {editTask ? 'Save Changes' : '+ Add Task'}
+            </button>
+            <button className="btn btn-ghost" onClick={onCancel}>Cancel</button>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── Settings ────────────────────────────────────────────────
+    function Settings({ appData, setAppData, showToast }) {
+      const { tasks, settings } = appData;
+
+      const updateSetting = (key, val) => {
+        const updated = { ...appData, settings: { ...appData.settings, [key]: val } };
+        immediatelySave(updated);
+        setAppData(updated);
+      };
+
+      const clearCompleted = () => {
+        const updated = { ...appData, tasks: appData.tasks.filter(t => t.status !== 'completed') };
+        immediatelySave(updated);
+        setAppData(updated);
+        showToast('Cleared completed tasks');
+      };
+
+      const totalTime      = tasks.reduce((s, t) => s + (t.timeSpent || 0), 0);
+      const completedCount = tasks.filter(t => t.status === 'completed').length;
+      const activeCount    = tasks.filter(t => t.status === 'active').length;
+      const totalCount     = tasks.length;
+
+      return (
+        <div className="settings-container">
+          {/* Stats */}
+          <div className="section-label" style={{ marginTop: '4px' }}>Stats</div>
+          <div className="card" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', textAlign: 'center' }}>
+            <div>
+              <div className="stat-num" style={{ color: 'var(--accent)' }}>{activeCount}</div>
+              <div style={{ fontSize: '10px', color: 'var(--text3)', marginTop: '4px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Active</div>
+            </div>
+            <div>
+              <div className="stat-num" style={{ color: 'var(--success)' }}>{completedCount}</div>
+              <div style={{ fontSize: '10px', color: 'var(--text3)', marginTop: '4px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Done</div>
+            </div>
+            <div>
+              <div className="stat-num" style={{ color: 'var(--text2)' }}>{totalCount}</div>
+              <div style={{ fontSize: '10px', color: 'var(--text3)', marginTop: '4px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total</div>
+            </div>
+            <div>
+              <div className="stat-num" style={{ color: 'var(--warning)', fontSize: '18px' }}>{formatSeconds(totalTime)}</div>
+              <div style={{ fontSize: '10px', color: 'var(--text3)', marginTop: '4px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Tracked</div>
+            </div>
+          </div>
+
+          {/* Zen Mode */}
+          <div className="section-label" style={{ marginTop: '24px' }}>Zen Mode</div>
+          <div className="card">
+            <div className="settings-row" style={{ borderBottom: 'none' }}>
+              <div>
+                <div className="settings-row-label">Tasks to offer</div>
+                <div className="settings-row-sub">How many priority tasks shown</div>
+              </div>
+              <div style={{ display: 'flex', gap: '5px' }}>
+                {[1,2,3,4,5].map(n => (
+                  <button
+                    key={n}
+                    onClick={() => updateSetting('zenOfferCount', n)}
+                    style={{
+                      width: '36px', height: '36px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      background: settings.zenOfferCount === n ? 'var(--accent)' : 'var(--bg3)',
+                      color: settings.zenOfferCount === n ? '#fff' : 'var(--text3)',
+                      fontWeight: '800', fontSize: '14px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Pomodoro */}
+          <div className="section-label" style={{ marginTop: '24px' }}>🍅 Pomodoro</div>
+          <div className="card">
+            <div className="settings-row">
+              <div>
+                <div className="settings-row-label">Focus duration</div>
+                <div className="settings-row-sub">Minutes per work session</div>
+              </div>
+              <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                {[15,20,25,30,45].map(n => (
+                  <button
+                    key={n}
+                    onClick={() => updateSetting('pomodoroWork', n)}
+                    style={{
+                      padding: '6px 10px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      background: settings.pomodoroWork === n ? 'var(--accent)' : 'var(--bg3)',
+                      color: settings.pomodoroWork === n ? '#fff' : 'var(--text3)',
+                      fontWeight: '800', fontSize: '13px',
+                      cursor: 'pointer',
+                    }}
+                  >{n}m</button>
+                ))}
+              </div>
+            </div>
+            <div className="settings-row" style={{ borderBottom: 'none' }}>
+              <div>
+                <div className="settings-row-label">Break duration</div>
+                <div className="settings-row-sub">Minutes per break</div>
+              </div>
+              <div style={{ display: 'flex', gap: '5px' }}>
+                {[3,5,10,15].map(n => (
+                  <button
+                    key={n}
+                    onClick={() => updateSetting('pomodoroBreak', n)}
+                    style={{
+                      padding: '6px 10px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      background: settings.pomodoroBreak === n ? 'var(--accent)' : 'var(--bg3)',
+                      color: settings.pomodoroBreak === n ? '#fff' : 'var(--text3)',
+                      fontWeight: '800', fontSize: '13px',
+                      cursor: 'pointer',
+                    }}
+                  >{n}m</button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Data */}
+          <div className="section-label" style={{ marginTop: '24px' }}>Data</div>
+          <div className="card">
+            <button className="btn btn-danger" style={{ width: '100%' }} onClick={clearCompleted}>
+              Clear All Completed Tasks
+            </button>
+          </div>
+
+          <div style={{ height: '60px' }} />
+        </div>
+      );
+    }
+
+    // ─── App ─────────────────────────────────────────────────────
+    function App() {
+      const [appData,  setAppData]  = useState(() => { console.log('🔥 App init'); return loadData(); });
+      const [view,     setView]     = useState('zen');
+      const [workTask, setWorkTask] = useState(null);
+      const [editTask, setEditTask] = useState(null);
+      const [toastMsg, setToastMsg] = useState(null);
+      const isUpdatingFromSync = useRef(false);
+
+      const showToast = useCallback((text) => {
+        setToastMsg({ text, id: Date.now() });
+      }, []);
+
+      // Keep workTask reference fresh when appData changes
+      useEffect(() => {
+        if (workTask) {
+          const latest = appData.tasks.find(t => t.id === workTask.id);
+          if (latest) setWorkTask(latest);
+        }
+      }, [appData.tasks]);
+
+      const navigate = (v) => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+        setView(v);
+        console.log('📍 View changed to:', v);
+      };
+
+      const goWorkTask = (task) => {
+        const latest = appData.tasks.find(t => t.id === task.id) || task;
+        setWorkTask(latest);
+        setView('work');
+        console.log('📍 View changed to: work —', latest.title);
+      };
+
+      const goAdd = (taskToEdit) => {
+        setEditTask(taskToEdit || null);
+        setView('add');
+      };
+
+      // Header config per view
+      const headers = {
+        zen:       { title: 'Life App V3', sub: 'What will you focus on?' },
+        dashboard: { title: 'All Tasks',   sub: `${appData.tasks.filter(t=>t.status==='active').length} active` },
+        add:       { title: editTask ? 'Edit Task' : 'New Task', sub: null },
+        settings:  { title: 'Settings',    sub: null },
+      };
+      const h = headers[view];
+
+      const activeCount = appData.tasks.filter(t => t.status === 'active').length;
+
+      return (
+        <>
+          {/* Header — hidden on work view */}
+          {view !== 'work' && (
+            <div className="header">
+              <div>
+                <div className="header-title">{h?.title}</div>
+                {h?.sub && <div className="header-subtitle">{h.sub}</div>}
+              </div>
+              {view === 'dashboard' && (
+                <button className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '13px' }} onClick={() => goAdd()}>
+                  + Add
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* ── Views ── */}
+          {view === 'zen' && (
+            <>
+              <ZenMode
+                appData={appData}
+                setAppData={setAppData}
+                onWorkTask={goWorkTask}
+                showToast={showToast}
+              />
+              <button className="fab" onClick={() => goAdd()} title="Add task">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5"  y1="12" x2="19" y2="12"/>
+                </svg>
+              </button>
+            </>
+          )}
+
+          {view === 'dashboard' && (
+            <>
+              <Dashboard
+                appData={appData}
+                setAppData={setAppData}
+                onWorkTask={goWorkTask}
+                showToast={showToast}
+              />
+              <button className="fab" onClick={() => goAdd()} title="Add task">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5"  y1="12" x2="19" y2="12"/>
+                </svg>
+              </button>
+            </>
+          )}
+
+          {view === 'add' && (
+            <AddTask
+              appData={appData}
+              setAppData={setAppData}
+              editTask={editTask}
+              onSave={() => navigate(editTask ? 'dashboard' : 'zen')}
+              onCancel={() => navigate(editTask ? 'dashboard' : view === 'add' ? 'zen' : 'dashboard')}
+              showToast={showToast}
+            />
+          )}
+
+          {view === 'work' && workTask && (
+            <WorkView
+              task={workTask}
+              appData={appData}
+              setAppData={setAppData}
+              onBack={() => navigate('zen')}
+              showToast={showToast}
+            />
+          )}
+
+          {view === 'settings' && (
+            <Settings appData={appData} setAppData={setAppData} showToast={showToast} />
+          )}
+
+          {/* Bottom Nav — hidden on work + add */}
+          {view !== 'work' && view !== 'add' && (
+            <div className="bottom-nav">
+              {/* Zen */}
+              <button className={`nav-btn ${view==='zen' ? 'active' : ''}`} onClick={() => navigate('zen')}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/>
+                </svg>
+                Zen
+              </button>
+
+              {/* Dashboard */}
+              <button className={`nav-btn ${view==='dashboard' ? 'active' : ''}`} onClick={() => navigate('dashboard')}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="7" height="7" rx="1"/>
+                  <rect x="14" y="3" width="7" height="7" rx="1"/>
+                  <rect x="3" y="14" width="7" height="7" rx="1"/>
+                  <rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+                Tasks
+                {activeCount > 0 && view !== 'dashboard' && (
+                  <span style={{
+                    position: 'absolute',
+                    top: '6px',
+                    fontSize: '9px',
+                    background: 'var(--accent)',
+                    color: '#fff',
+                    borderRadius: '99px',
+                    padding: '1px 5px',
+                    fontWeight: '800',
+                  }}>{activeCount}</span>
+                )}
+              </button>
+
+              {/* Settings */}
+              <button className={`nav-btn ${view==='settings' ? 'active' : ''}`} onClick={() => navigate('settings')} style={{ position: 'relative' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+                Settings
+              </button>
+            </div>
+          )}
+
+          <Toast message={toastMsg} />
+        </>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

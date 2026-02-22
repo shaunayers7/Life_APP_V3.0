@@ -7,18 +7,18 @@
 
 ## 🔴 In Progress
 
-- [ ] _(active tasks go here)_
+_(nothing active)_
 
 ---
 
 ## 🟡 Up Next
 
-- [ ] Design initial data structure
-- [ ] Scaffold `index.html` with React + Babel + Firebase
-- [ ] Implement `immediatelySaveToLocalStorage` helper
-- [ ] Build core UI layout
-- [ ] Add localStorage load on app init
-- [ ] Add manual cloud sync (push/pull)
+- [ ] Add task edit from WorkView (edit button in header)
+- [ ] Add task delete (swipe or long-press in Dashboard)
+- [ ] Category management in Settings (add/rename/reorder)
+- [ ] Firebase Auth + Firestore sync (when ready)
+- [ ] OpenAI task suggestion layer on top of rule scoring
+- [ ] PWA manifest + service worker for install prompt
 
 ---
 
@@ -34,7 +34,18 @@
 
 ## ✅ Completed
 
-_(move items here as they are done — include date)_
+- [x] Set up docs/ folder + copilot-instructions files — 2026-02-22
+- [x] Scaffold index.html with React + Babel (single file) — 2026-02-22
+- [x] Implement `immediatelySave` helper (iOS safe) — 2026-02-22
+- [x] localStorage load on app init — 2026-02-22
+- [x] Zen Focus Mode with fade transition + Pass — 2026-02-22
+- [x] Task scoring algorithm (priority + due date + neglect + age) — 2026-02-22
+- [x] Dashboard with category filter + completion toggle — 2026-02-22
+- [x] Add/Edit task form (title, category, priority, due date, notes) — 2026-02-22
+- [x] WorkView with stopwatch / countdown / Pomodoro timers — 2026-02-22
+- [x] Settings view (Zen count, Pomodoro durations, stats) — 2026-02-22
+- [x] Toast notification system (no alert/confirm/prompt) — 2026-02-22
+- [x] Default categories: Work, Health, Home, Finance, Personal, Projects — 2026-02-22
 
 ---
 

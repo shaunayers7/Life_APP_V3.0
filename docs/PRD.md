@@ -25,22 +25,69 @@
 
 ## Section 3: Features
 
-> _(List features as they are explicitly requested and built)_
-
 | Feature | Status | Notes |
 |---------|--------|-------|
-| _(add features here)_ | | |
+| Zen Focus Mode | ✅ Built | Shows top N scored tasks, tap to select, others fade out |
+| Task scoring algorithm | ✅ Built | Priority × weight + due date urgency + neglect + age |
+| Pass / skip task | ✅ Built | Increments skippedCount, boosts future score |
+| Dashboard / task list | ✅ Built | Filter by category, sorted by score, toggle complete |
+| Add / edit task | ✅ Built | Title, category, priority (1–5), due date, notes |
+| Stopwatch timer | ✅ Built | Tracks time spent per task, survives app kill |
+| Countdown timer | ✅ Built | Counts down from configurable duration |
+| Pomodoro timer | ✅ Built | Configurable work/break cycles with dot tracker |
+| localStorage persistence | ✅ Built | Immediate sync before setState — iOS safe |
+| Toast notifications | ✅ Built | No alert()/confirm()/prompt() used anywhere |
+| Settings view | ✅ Built | Zen offer count, Pomodoro durations, stats, clear completed |
+| Stats dashboard | ✅ Built | Active, done, total, time tracked |
+| Default categories | ✅ Built | Work, Health, Home, Finance, Personal, Projects |
 
 ---
 
 ## Section 4: Data Structure
 
-> _(Document the finalized data shape here as it is decided)_
-
 ```javascript
 // Primary storage key: life_app_v3_data
-// Shape TBD — fill in as data structure is designed
-{}
+{
+  tasks: Task[],
+  categories: Category[],
+  settings: {
+    zenOfferCount: number,   // 1–5, default 3
+    pomodoroWork:  number,   // minutes, default 25
+    pomodoroBreak: number,   // minutes, default 5
+  }
+}
+
+// Task shape (DO NOT rename/remove fields)
+{
+  id:                 string,   // uuid — never changes
+  title:              string,
+  categoryId:         string,   // references Category.id
+  priority:           1|2|3|4|5, // 1=Low … 5=Critical
+  dueDate:            ISO8601 | null,
+  notes:              string,
+  status:             'active' | 'completed',
+  createdAt:          ISO8601,
+  updatedAt:          ISO8601,
+  completedAt:        ISO8601 | null,
+  skippedCount:       number,   // times passed in Zen mode
+  timeSpent:          number,   // total seconds tracked
+  timerType:          'stopwatch' | 'countdown' | 'pomodoro',
+  timerRunning:       boolean,
+  timerStartedAt:     timestamp | null,  // Date.now() value
+  timerCountdownFrom: number,   // seconds
+  pomodoroCount:      number,   // completed pomodoros
+  pomodoroPhase:      'work' | 'break',
+  lastSynced:         ISO8601 | null,
+  fieldModifications: object,   // reserved for cloud sync
+}
+
+// Category shape
+{
+  id:    string,
+  name:  string,
+  color: string,  // hex
+  icon:  string,  // emoji
+}
 ```
 
 ---
