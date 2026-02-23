@@ -862,6 +862,7 @@
       padding: calc(var(--safe-top) + 12px) 16px 12px;
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 10px;
       border-bottom: 1px solid var(--border);
       flex-shrink: 0;
@@ -1331,15 +1332,29 @@
     }
 
     // ─── TaskCard ────────────────────────────────────────────────
-    function TaskCard({ task, categories, onTap, onToggle }) {
+    function TaskCard({ task, categories, onTap, onToggle, onDelete }) {
       const cat = categories.find(c => c.id === task.categoryId);
       const due = getDueBadge(task.dueDate);
       const timeStr = task.timeSpent > 0 ? formatSeconds(task.timeSpent) : null;
+      const [showDelete, setShowDelete] = useState(false);
+      const lpTimer = useRef(null);
+
+      const pressStart = () => {
+        lpTimer.current = setTimeout(() => setShowDelete(true), 500);
+      };
+      const pressEnd = () => clearTimeout(lpTimer.current);
 
       return (
         <div
           className={`task-card ${task.status === 'completed' ? 'completed' : ''}`}
-          onClick={() => onTap(task)}
+          style={showDelete ? { outline: '2px solid var(--danger)' } : {}}
+          onClick={() => { if (showDelete) { setShowDelete(false); return; } onTap(task); }}
+          onMouseDown={pressStart}
+          onMouseUp={pressEnd}
+          onMouseLeave={pressEnd}
+          onTouchStart={pressStart}
+          onTouchEnd={pressEnd}
+          onTouchCancel={pressEnd}
         >
           <div className="task-card-stripe" style={{ background: cat?.color || 'var(--accent)' }} />
           <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
@@ -1355,6 +1370,15 @@
               </div>
             </div>
           </div>
+          {showDelete && (
+            <button
+              className="btn btn-danger"
+              style={{ width: '100%', marginTop: '10px', fontSize: '13px' }}
+              onClick={e => { e.stopPropagation(); onDelete(task.id); }}
+            >
+              Delete Task
+            </button>
+          )}
         </div>
       );
     }
@@ -1386,7 +1410,7 @@
     }
 
     // ─── WorkView ────────────────────────────────────────────────
-    function WorkView({ task, appData, setAppData, onBack, showToast }) {
+    function WorkView({ task, appData, setAppData, onBack, onEdit, showToast }) {
       const { categories } = appData;
       const cat = categories.find(c => c.id === task.categoryId);
       const [timerType, setTimerType] = useState(task.timerType || 'stopwatch');
@@ -1485,8 +1509,13 @@
             <button className="btn btn-ghost" style={{ padding: '8px 14px', fontSize: '13px' }} onClick={onBack}>
               ← Back
             </button>
-            {cat && <CatPill cat={cat} />}
-            {due && <span className={`due-badge ${due.cls}`}>{due.label}</span>}
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              {cat && <CatPill cat={cat} />}
+              {due && <span className={`due-badge ${due.cls}`}>{due.label}</span>}
+            </div>
+            <button className="btn btn-ghost" style={{ padding: '8px 14px', fontSize: '13px' }} onClick={onEdit}>
+              Edit
+            </button>
           </div>
 
           <div className="work-body">
@@ -1730,6 +1759,13 @@
         showToast(newStatus === 'completed' ? '✅ Done!' : 'Reopened');
       };
 
+      const deleteTask = (taskId) => {
+        const updated = { ...appData, tasks: appData.tasks.filter(t => t.id !== taskId) };
+        immediatelySave(updated);
+        setAppData(updated);
+        showToast('Task deleted');
+      };
+
       return (
         <div className="dashboard-container">
           {/* Category filter pills */}
@@ -1765,6 +1801,7 @@
                     categories={categories}
                     onTap={onWorkTask}
                     onToggle={toggleComplete}
+                    onDelete={deleteTask}
                   />
                 ))}
               </div>
@@ -1798,6 +1835,7 @@
                       categories={categories}
                       onTap={onWorkTask}
                       onToggle={toggleComplete}
+                      onDelete={deleteTask}
                     />
                   ))}
                 </div>
@@ -1952,14 +1990,106 @@
       );
     }
 
+    // ─── CatEditRow ────────────────────────────────────────────────
+    const CAT_PRESET_COLORS = ['#4f8ef7','#e74c3c','#2ecc71','#f39c12','#9b59b6','#1abc9c','#e67e22','#34495e'];
+    const CAT_PRESET_ICONS  = ['📋','💼','🏠','💰','⚡','🎯','🏋️','🧠','🌱','🎨','📚','🛠️'];
+
+    function CatEditRow({ cat, index, total, onRename, onMove }) {
+      const [editing, setEditing] = useState(false);
+      const [name,    setName]    = useState(cat.name);
+
+      const commit = () => {
+        const trimmed = name.trim();
+        if (trimmed && trimmed !== cat.name) onRename(cat.id, trimmed);
+        else setName(cat.name);
+        setEditing(false);
+      };
+
+      return (
+        <div className="settings-row" style={{ alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+            <span style={{ fontSize: '16px' }}>{cat.icon}</span>
+            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: cat.color, display: 'inline-block', flexShrink: 0 }} />
+            {editing ? (
+              <input
+                className="form-input"
+                style={{ flex: 1, padding: '4px 8px', fontSize: '14px', height: '32px' }}
+                value={name}
+                autoFocus
+                onChange={e => setName(e.target.value)}
+                onBlur={commit}
+                onKeyDown={e => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') { setName(cat.name); setEditing(false); } }}
+              />
+            ) : (
+              <span
+                style={{ flex: 1, fontWeight: 600, color: 'var(--text1)', cursor: 'pointer' }}
+                onClick={() => setEditing(true)}
+                title="Tap to rename"
+              >
+                {cat.name}
+              </span>
+            )}
+          </div>
+          <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+            <button
+              disabled={index === 0}
+              onClick={() => onMove(index, -1)}
+              className="btn btn-ghost"
+              style={{ padding: '4px 8px', fontSize: '14px', opacity: index === 0 ? 0.3 : 1 }}
+            >↑</button>
+            <button
+              disabled={index === total - 1}
+              onClick={() => onMove(index, 1)}
+              className="btn btn-ghost"
+              style={{ padding: '4px 8px', fontSize: '14px', opacity: index === total - 1 ? 0.3 : 1 }}
+            >↓</button>
+          </div>
+        </div>
+      );
+    }
+
     // ─── Settings ────────────────────────────────────────────────
     function Settings({ appData, setAppData, showToast }) {
-      const { tasks, settings } = appData;
+      const { tasks, settings, categories } = appData;
+      const [newCatName,  setNewCatName]  = useState('');
+      const [newCatColor, setNewCatColor] = useState(CAT_PRESET_COLORS[0]);
+      const [newCatIcon,  setNewCatIcon]  = useState(CAT_PRESET_ICONS[0]);
+      const [showAddCat,  setShowAddCat]  = useState(false);
 
       const updateSetting = (key, val) => {
         const updated = { ...appData, settings: { ...appData.settings, [key]: val } };
         immediatelySave(updated);
         setAppData(updated);
+      };
+
+      const renameCategory = (id, name) => {
+        const updated = { ...appData, categories: appData.categories.map(c => c.id === id ? { ...c, name } : c) };
+        immediatelySave(updated);
+        setAppData(updated);
+        showToast('Category renamed');
+      };
+
+      const moveCat = (index, dir) => {
+        const cats = [...appData.categories];
+        const [item] = cats.splice(index, 1);
+        cats.splice(index + dir, 0, item);
+        const updated = { ...appData, categories: cats };
+        immediatelySave(updated);
+        setAppData(updated);
+      };
+
+      const addCategory = () => {
+        const trimmed = newCatName.trim();
+        if (!trimmed) return;
+        const newCat = { id: 'cat_' + Date.now(), name: trimmed, color: newCatColor, icon: newCatIcon };
+        const updated = { ...appData, categories: [...appData.categories, newCat] };
+        immediatelySave(updated);
+        setAppData(updated);
+        setNewCatName('');
+        setNewCatColor(CAT_PRESET_COLORS[0]);
+        setNewCatIcon(CAT_PRESET_ICONS[0]);
+        setShowAddCat(false);
+        showToast('Category added');
       };
 
       const clearCompleted = () => {
@@ -2078,6 +2208,67 @@
             </div>
           </div>
 
+          {/* Categories */}
+          <div className="section-label" style={{ marginTop: '24px' }}>Categories</div>
+          <div className="card">
+            {categories.map((cat, idx) => (
+              <CatEditRow
+                key={cat.id}
+                cat={cat}
+                index={idx}
+                total={categories.length}
+                onRename={renameCategory}
+                onMove={moveCat}
+              />
+            ))}
+            {/* Add category */}
+            {showAddCat ? (
+              <div style={{ borderTop: '1px solid var(--border)', paddingTop: '12px', marginTop: '4px' }}>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                  <input
+                    className="form-input"
+                    style={{ flex: 1 }}
+                    placeholder="Category name"
+                    value={newCatName}
+                    onChange={e => setNewCatName(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') addCategory(); }}
+                    autoFocus
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                  {CAT_PRESET_ICONS.map(ic => (
+                    <button
+                      key={ic}
+                      onClick={() => setNewCatIcon(ic)}
+                      style={{ fontSize: '18px', background: ic === newCatIcon ? 'var(--bg3)' : 'transparent', border: ic === newCatIcon ? '2px solid var(--accent)' : '2px solid transparent', borderRadius: '6px', padding: '2px 4px', cursor: 'pointer' }}
+                    >{ic}</button>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
+                  {CAT_PRESET_COLORS.map(cl => (
+                    <button
+                      key={cl}
+                      onClick={() => setNewCatColor(cl)}
+                      style={{ width: '24px', height: '24px', borderRadius: '50%', background: cl, border: cl === newCatColor ? '3px solid var(--text1)' : '3px solid transparent', cursor: 'pointer' }}
+                    />
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button className="btn btn-primary" style={{ flex: 1 }} onClick={addCategory}>Add</button>
+                  <button className="btn btn-ghost" onClick={() => { setShowAddCat(false); setNewCatName(''); }}>Cancel</button>
+                </div>
+              </div>
+            ) : (
+              <button
+                className="btn btn-ghost"
+                style={{ width: '100%', marginTop: '8px', fontSize: '13px', textAlign: 'center' }}
+                onClick={() => setShowAddCat(true)}
+              >
+                + Add Category
+              </button>
+            )}
+          </div>
+
           {/* Data */}
           <div className="section-label" style={{ marginTop: '24px' }}>Data</div>
           <div className="card">
@@ -2097,6 +2288,7 @@
       const [view,     setView]     = useState('zen');
       const [workTask, setWorkTask] = useState(null);
       const [editTask, setEditTask] = useState(null);
+      const [editFrom, setEditFrom] = useState('zen');
       const [toastMsg, setToastMsg] = useState(null);
       const isUpdatingFromSync = useRef(false);
 
@@ -2125,8 +2317,9 @@
         console.log('📍 View changed to: work —', latest.title);
       };
 
-      const goAdd = (taskToEdit) => {
+      const goAdd = (taskToEdit, from) => {
         setEditTask(taskToEdit || null);
+        setEditFrom(from || (taskToEdit ? 'dashboard' : 'zen'));
         setView('add');
       };
 
@@ -2198,8 +2391,8 @@
               appData={appData}
               setAppData={setAppData}
               editTask={editTask}
-              onSave={() => navigate(editTask ? 'dashboard' : 'zen')}
-              onCancel={() => navigate(editTask ? 'dashboard' : view === 'add' ? 'zen' : 'dashboard')}
+              onSave={() => navigate(editFrom === 'work' ? 'work' : editTask ? 'dashboard' : 'zen')}
+              onCancel={() => navigate(editFrom === 'work' ? 'work' : editTask ? 'dashboard' : 'zen')}
               showToast={showToast}
             />
           )}
@@ -2210,6 +2403,7 @@
               appData={appData}
               setAppData={setAppData}
               onBack={() => navigate('zen')}
+              onEdit={() => goAdd(workTask, 'work')}
               showToast={showToast}
             />
           )}

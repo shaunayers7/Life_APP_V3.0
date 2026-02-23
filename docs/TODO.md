@@ -1,7 +1,7 @@
 # Life App V3 — TODO
 
 > Update this file at the start and end of every session.  
-> Current date: 2026-02-22
+> Current date: 2026-02-23
 
 ---
 
@@ -13,9 +13,7 @@ _(nothing active)_
 
 ## 🟡 Up Next
 
-- [ ] Add task edit from WorkView (edit button in header)
-- [ ] Add task delete (swipe or long-press in Dashboard)
-- [ ] Category management in Settings (add/rename/reorder)
+- [ ] Category management — delete category (with task reassignment prompt)
 - [ ] Firebase Auth + Firestore sync (when ready)
 - [ ] OpenAI task suggestion layer on top of rule scoring
 - [ ] PWA manifest + service worker for install prompt
@@ -46,6 +44,9 @@ _(nothing active)_
 - [x] Settings view (Zen count, Pomodoro durations, stats) — 2026-02-22
 - [x] Toast notification system (no alert/confirm/prompt) — 2026-02-22
 - [x] Default categories: Work, Health, Home, Finance, Personal, Projects — 2026-02-22
+- [x] Edit button in WorkView header → opens AddTask in edit mode, returns to WorkView — 2026-02-23
+- [x] Task delete via long-press on TaskCard in Dashboard — 2026-02-23
+- [x] Category management in Settings (rename inline, reorder up/down, add new) — 2026-02-23
 
 ---
 
